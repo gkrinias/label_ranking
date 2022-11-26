@@ -63,7 +63,7 @@ def halfspace(X, Y, epsilon, delta, eta_max, constants):
   N = int(C4 * np.log(T) / epsilon**2 / (1 - 2*eta_max)**2)
 
   assert len(X) == len(Y)
-  assert len(X) >= T + N, "More samples needed."
+  assert len(X) >= T + N, f"At least {T + N} samples needed."
 
   print("d =", d)
   print("epsilon =", epsilon)
