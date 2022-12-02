@@ -15,6 +15,13 @@ def ground_truth_labels(X, w_opt):
   return np.array([sign(np.dot(x, w_opt)) for x in X])
 
 
+def ground_truth_permutations(X, W_opt):
+  """
+  Find ground truth labels given optimal weight vector.
+  """
+  return np.array([np.argsort(np.matmul(W_opt, x))[::-1] for x in X])
+
+
 def flip_label(x, eta_):
   """
   Flip x's ground truth label with probability eta(x) <= eta_max < 1/2.

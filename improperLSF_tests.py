@@ -3,17 +3,20 @@ from scipy.stats import multivariate_normal
 from label_ranking import *
 from massart import *
 
-N = 100000
+N = 1000000
 d = 10  # data dimension
-k = 6  # labels
-epsilon = 0.2  # upper bound for classification error
-delta = 0.2  # 1 - delta is the confidence
-eta_max = 0.1
+k = 4  # labels
+epsilon = 0.3  # upper bound for classification error
+delta = 0.3  # 1 - delta is the confidence
+eta_max = 0
 
 D = multivariate_normal(mean=np.zeros(d), cov=np.identity(d))  # distribution
 
+W_opt = np.random.rand(k, d)
+
+
 X_train = D.rvs(size=N)
-P_train_ground_true = np.array([np.random.permutation(range(1, k + 1)) for _ in range(N)])
+P_train_ground_true = ground_truth_permutations(X_train, W_opt)
 P_train = np.array([addNoise(y, eta_max) for y in P_train_ground_true])
 
 V = pairwiseHalfspaces(
@@ -26,4 +29,4 @@ V = pairwiseHalfspaces(
 )
 
 # Test accuracy of output halfspace
-print(np.mean([ranking_accuracy(X_train[i], P_train[i], V) for i in range(1000)]))
+print(np.mean([ranking_accuracy(X_train[i], P_train_ground_true[i], V) for i in range(1000)]))

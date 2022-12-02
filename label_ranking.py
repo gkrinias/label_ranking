@@ -54,7 +54,7 @@ def pairwiseHalfspaces(X, P, epsilon, delta, eta_max, constants):
     (i, j): halfspace(
       X=X,
       Y=[sign(p[i] - p[j]) for p in P],
-      epsilon=epsilon,  # epsilon/4,
+      epsilon=epsilon/4,
       delta=delta/10/len(P[0])**2,
       eta_max=eta_max,
       constants=constants
