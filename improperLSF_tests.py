@@ -16,8 +16,13 @@ W_opt = np.random.rand(k, d)
 
 
 X_train = D.rvs(size=N)
-P_train_ground_true = ground_truth_permutations(X_train, W_opt)
-P_train = P_train_ground_true #np.array([addNoise(y, eta_max) for y in P_train_ground_true])
+R_train_ground_true = ground_truth_permutations(X_train, W_opt)
+
+P_train_ground_true = np.array([positionsOf(ranking) for ranking in R_train_ground_true])
+
+R_train = R_train_ground_true #np.array([addNoise(y, eta_max) for y in P_train_ground_true])
+
+P_train = np.array([positionsOf(ranking) for ranking in R_train])
 
 V = pairwiseHalfspaces(
   X=X_train,

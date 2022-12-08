@@ -10,6 +10,15 @@ def flatten(S):
     return flatten(S[0]) + flatten(S[1:])
   return S[:1] + flatten(S[1:])
 
+def rankingOf(positions):
+  ranking = np.empty_like(positions)
+  for label, position in enumerate(positions): ranking[position] = label
+  return ranking
+
+def positionsOf(ranking):
+  positions = np.empty_like(ranking)
+  for position, label in enumerate(ranking): positions[label] = position
+  return positions
 
 def kwickSort(V, A):
   """
@@ -71,7 +80,7 @@ def ranking_accuracy(x, p, V):
   p_predicted = improperLSF(x, k, V)
   goodPairs = 0
   for (i, j) in combinations(range(k), 2):
-    if p[i] > p[j] and p_predicted[i] > p_predicted[j]: goodPairs += 1
+    if (p[i] - p[j])*(p_predicted[i]-p_predicted[j]) > 0: goodPairs += 1
   return 2*goodPairs/k/(k-1)
 
   
