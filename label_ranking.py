@@ -44,7 +44,7 @@ def flip_pair(eta):
   Decide whether to change the ordering of a pair.
   Change takes place with probability < eta.
   """
-  return np.random.random() < np.random.random()*eta
+  return np.random.random() < eta
 
 
 def addNoise(ranking, eta):
