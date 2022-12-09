@@ -72,15 +72,15 @@ def pairwiseHalfspaces(X, P, epsilon, delta, eta_max, constants):
   }
 
 def improperLSF(x, k, V):
-  A = set((i, j) if np.dot(V[(i, j)], x) > 0 else (j, i) for (i, j) in combinations(range(1, k), 2))
+  A = set((i, j) if np.dot(V[(i, j)], x) > 0 else (j, i) for (i, j) in combinations(range(k), 2))
   return flatten(kwickSort(set(range(k)), A))
 
 def ranking_accuracy(x, p, V):
   k = len(p)
-  p_predicted = improperLSF(x, k, V)
+  p_predicted = np.argsort(improperLSF(x, k, V))
   goodPairs = 0
   for (i, j) in combinations(range(k), 2):
-    if (p[i] - p[j])*(p_predicted[i]-p_predicted[j]) > 0: goodPairs += 1
+    if (p[i] - p[j])*(p_predicted[i] - p_predicted[j]) > 0: goodPairs += 1
   return 2*goodPairs/k/(k-1)
 
   
