@@ -1,10 +1,54 @@
-from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import numpy as np
 from scipy.stats import logistic
 from itertools import combinations
-from label_ranking import flatten, kwickSort
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+
+
+def KTdistance(p, q):
+  """
+  Returns normalized KT distance between two position arrays.
+  """
+  assert len(p) == len(q)
+  misordered_pairs = 0
+  for (i, j) in combinations(range(len(p)), 2):
+    if (p[i] - p[j])*(q[i] - q[j]) < 0: misordered_pairs += 1
+  return 2*misordered_pairs/len(p)/(len(p) - 1)
+
+
+def score(P, P_pred):
+  return np.mean([1 - KTdistance(p, p_pred) for p, p_pred in zip(P, P_pred)])
+
+
+def flatten(S):
+  """
+  Recursively flatten a list of lists of lists of...
+  """
+  if not S:
+    return S
+  if isinstance(S[0], list):
+    return flatten(S[0]) + flatten(S[1:])
+  return S[:1] + flatten(S[1:])
+
+
+def kwickSort(V, A):
+  """
+  Approximation algorithm for constructing a permutation
+  from tournament graph (pairwise orderings), so that the
+  resultant conflicts are minimized.
+  """
+  if not V: return []
+  Vl = set()
+  Vr = set()
+  i = np.random.choice(list(V))
+
+  for j in V.difference({i}): Vl.add(j) if (j, i) in A else Vr.add(j)
+
+  Al = set((i, j) for (i, j) in A if i in Vl and j in Vl)
+  Ar = set((i, j) for (i, j) in A if i in Vr and j in Vr)
+
+  return [kwickSort(Vl, Al), i, kwickSort(Vr, Ar)]
 
 
 class LabelwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
@@ -51,6 +95,10 @@ class PairwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
   def __sign(self, x): return 2*(x >= 0) - 1
 
   def __create_positions(self, y):
+    """
+    Takes as argument an array indicating the dominant label for each pair
+    of labels and returns the positions of the underlying ranking. 
+    """
     A = set(
       (i, j) if y[k] > 0 else (j, i) 
       for k, (i, j) in enumerate(combinations(range(self.NLABELS), 2))
@@ -60,7 +108,10 @@ class PairwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
   def fit(self, X, P):
     self.NLABELS = len(P[0])
     self.clfs = [
-      DecisionTreeClassifier().fit(X, np.array([self.__sign(p[j] - p[i]) for p in P]))
+      DecisionTreeClassifier().fit(
+        X,
+        np.array([self.__sign(p[j] - p[i]) for p in P])
+      )
       for (i, j) in combinations(range(self.NLABELS), 2)
     ]
     return self
@@ -78,6 +129,10 @@ class PairwiseRandomForestLR(BaseEstimator, ClassifierMixin):
   def __sign(self, x): return 2*(x >= 0) - 1
 
   def __create_positions(self, y):
+    """
+    Takes as argument an array indicating the dominant label for each pair
+    of labels and returns the positions of the underlying ranking. 
+    """
     A = set(
       (i, j) if y[k] > 0 else (j, i) 
       for k, (i, j) in enumerate(combinations(range(self.NLABELS), 2))
@@ -87,7 +142,10 @@ class PairwiseRandomForestLR(BaseEstimator, ClassifierMixin):
   def fit(self, X, P):
     self.NLABELS = len(P[0])
     self.clfs = [
-      RandomForestClassifier().fit(X, np.array([self.__sign(p[j] - p[i]) for p in P]))
+      RandomForestClassifier().fit(
+        X,
+        np.array([self.__sign(p[j] - p[i]) for p in P])
+      )
       for (i, j) in combinations(range(self.NLABELS), 2)
     ]
     return self
@@ -106,6 +164,17 @@ class PairwiseHalfspaceLR(BaseEstimator, ClassifierMixin):
     self.V = None
 
   def __sign(self, x): return 2*(x >= 0) - 1
+
+  def __create_positions(self, y):
+    """
+    Takes as argument an array indicating the dominant label for each pair
+    of labels and returns the positions of the underlying ranking. 
+    """
+    A = set(
+      (i, j) if y[k] > 0 else (j, i) 
+      for k, (i, j) in enumerate(combinations(range(self.NLABELS), 2))
+    )
+    return np.argsort(flatten(kwickSort(set(range(self.NLABELS)), A)))
 
   def __grad_g(self, x, y, w):
     ywx = y*np.dot(x, w)
@@ -129,13 +198,6 @@ class PairwiseHalfspaceLR(BaseEstimator, ClassifierMixin):
     W = self.__psgd(X[:T], Y[:T])
     W = np.concatenate((W, -W))
     return W[self.__best_halfspace_idx(W, X[T:], Y[T:])]
-
-  def __create_positions(self, y):
-    A = set(
-      (i, j) if y[k] > 0 else (j, i) 
-      for k, (i, j) in enumerate(combinations(range(self.NLABELS), 2))
-    )
-    return np.argsort(flatten(kwickSort(set(range(self.NLABELS)), A)))
 
   def fit(self, X, P):
     self.NLABELS = len(P[0])

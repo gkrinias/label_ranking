@@ -1,4 +1,5 @@
 import numpy as np
+from itertools import combinations
 
 
 def sign(x):
@@ -6,6 +7,54 @@ def sign(x):
   Returns 1 if x >= 0 else -1
   """
   return 2*(x >= 0) - 1
+
+
+def flatten(S):
+  """
+  Recursively flatten a list of lists of lists of...
+  """
+  if not S:
+    return S
+  if isinstance(S[0], list):
+    return flatten(S[0]) + flatten(S[1:])
+  return S[:1] + flatten(S[1:])
+
+
+def kwickSort(V, A):
+  """
+  Approximation algorithm for constructing a permutation
+  from tournament graph (pairwise orderings), so that the
+  resultant conflicts are minimized.
+  """
+  if not V: return []
+  Vl = set()
+  Vr = set()
+  i = np.random.choice(list(V))
+
+  for j in V.difference({i}): Vl.add(j) if (j, i) in A else Vr.add(j)
+
+  Al = set((i, j) for (i, j) in A if i in Vl and j in Vl)
+  Ar = set((i, j) for (i, j) in A if i in Vr and j in Vr)
+
+  return [kwickSort(Vl, Al), i, kwickSort(Vr, Ar)]
+
+
+def flip_pair(eta):
+  """
+  Decide whether to change the ordering of a pair.
+  Change takes place with probability < eta.
+  """
+  return np.random.random() < eta
+
+
+def addNoise(ranking, eta):
+  """
+  Adds noise to a given ranking.
+  The probability to change the ordering in each pair is at most eta.
+  """
+  pair_orderings = set((j, i) if flip_pair(eta) else (i, j) for (i, j) in combinations(ranking, 2))
+  # We need to resolve conflicts, i.e. remove cycles in the corresponding tournament graph
+  return np.array(flatten(kwickSort(set(range(len(ranking))), pair_orderings)))
 
 
 def ground_truth_labels(X, w_opt):

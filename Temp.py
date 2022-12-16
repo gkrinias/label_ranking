@@ -1,7 +1,23 @@
-from sklearn.base import BaseEstimator, ClassifierMixin
 import numpy as np
 from scipy.stats import logistic
 from itertools import combinations
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+
+def KTdistance(p, q):
+  """
+  Returns normalized KT distance between two position arrays.
+  """
+  assert len(p) == len(q)
+  misordered_pairs = 0
+  for (i, j) in combinations(range(len(p)), 2):
+    if (p[i] - p[j])*(q[i] - q[j]) < 0: misordered_pairs += 1
+  return 2*misordered_pairs/len(p)/(len(p) - 1)
+
+
+def score(P, P_pred):
+  return np.mean([1 - KTdistance(p, p_pred) for p, p_pred in zip(P, P_pred)])
+
 
 class LR_PSGD(BaseEstimator, ClassifierMixin):
   def __init__(self, beta, sigma):
@@ -9,8 +25,6 @@ class LR_PSGD(BaseEstimator, ClassifierMixin):
     self.beta = beta
     self.sigma = sigma
     self.W_ = None
-
-  def __sign(self, x): return 2*(x >= 0) - 1
 
   def __grad_g(self, x, p, W):
     G = np.empty_like(W)
@@ -27,7 +41,8 @@ class LR_PSGD(BaseEstimator, ClassifierMixin):
     
   def __psgd(self, X, Y):
     W_ = np.zeros((self.NLABELS, len(X[0])))
-    for i in range(self.NLABELS): W_[i, i] = 1
+    for i in range(self.NLABELS): W_[i, i] = 1  # Initializing W
+
     for i in range(len(X)):
       W_ = W_ - self.beta*self.__grad_g(X[i], Y[i], W_)
       for j in range(self.NLABELS): W_[j] /= np.linalg.norm(W_[j])
