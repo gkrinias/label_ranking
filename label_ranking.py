@@ -10,15 +10,6 @@ def flatten(S):
     return flatten(S[0]) + flatten(S[1:])
   return S[:1] + flatten(S[1:])
 
-def rankingOf(positions):
-  ranking = np.empty_like(positions)
-  for label, position in enumerate(positions): ranking[position] = label
-  return ranking
-
-def positionsOf(ranking):
-  positions = np.empty_like(ranking)
-  for position, label in enumerate(ranking): positions[label] = position
-  return positions
 
 def kwickSort(V, A):
   """

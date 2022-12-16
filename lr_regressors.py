@@ -19,6 +19,10 @@ def KTdistance(p, q, format='positions'):
   return 2*misordered_pairs/len(p)/(len(p) - 1)
 
 
+def score(P, P_pred):
+  return np.mean([1 - KTdistance(p, p_pred) for p, p_pred in zip(P, P_pred)])
+
+
 def DecisionTreeScore(X_train, Y_train, X_test, Y_test, format='positions'):
   """
   Returns average normalized KT distance measured on test data
