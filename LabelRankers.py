@@ -4,6 +4,7 @@ from itertools import combinations
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from scipy.stats import kendalltau
 
 
 def KTdistance(p, q):
@@ -19,6 +20,13 @@ def KTdistance(p, q):
 
 def score(P, P_pred):
   return np.mean([1 - KTdistance(p, p_pred) for p, p_pred in zip(P, P_pred)])
+
+def kendall_rank_corr_coef(p_true, p_pred):
+  """
+  Kendall rank correlation coefficient
+  """
+  return kendalltau(p_true, p_pred)[0]
+
 
 
 def flatten(S):

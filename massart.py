@@ -56,6 +56,24 @@ def addNoise(ranking, eta):
   # We need to resolve conflicts, i.e. remove cycles in the corresponding tournament graph
   return np.array(flatten(kwickSort(set(range(len(ranking))), pair_orderings)))
 
+def addNoise2(ranking, eta):
+  """
+  Flips some specific pairs with probability eta.
+  """
+  if flip_pair(eta): ranking[0], ranking[1] = ranking[1], ranking[0]
+  if flip_pair(eta): ranking[3], ranking[4] = ranking[4], ranking[3]
+  return ranking
+
+def addNoise3(ranking, eta):
+  """
+  Flips some specific pairs with probability eta.
+  """
+  if flip_pair(eta): ranking[0], ranking[12] = ranking[12], ranking[0]
+  if flip_pair(eta): ranking[3], ranking[14] = ranking[14], ranking[3]
+  if flip_pair(eta): ranking[6], ranking[7] = ranking[7], ranking[6]
+  if flip_pair(eta): ranking[10], ranking[11] = ranking[11], ranking[10]
+  return ranking
+
 
 def ground_truth_labels(X, w_opt):
   """

@@ -3,6 +3,7 @@ from scipy.stats import logistic
 from itertools import combinations
 from sklearn.base import BaseEstimator, ClassifierMixin
 
+# Failed attempt to learn the whole matrix with Perceptron Like update rule
 
 def KTdistance(p, q):
   """
@@ -19,11 +20,10 @@ def score(P, P_pred):
   return np.mean([1 - KTdistance(p, p_pred) for p, p_pred in zip(P, P_pred)])
 
 
-class LR_PSGD(BaseEstimator, ClassifierMixin):
-  def __init__(self, beta, sigma):
+class LR_PerceptronLike(BaseEstimator, ClassifierMixin):
+  def __init__(self, beta):
     self.NLABELS = None
     self.beta = beta
-    self.sigma = sigma
     self.W_ = None
 
   def __grad_g(self, x, p, W):
@@ -31,21 +31,19 @@ class LR_PSGD(BaseEstimator, ClassifierMixin):
     for i in range(self.NLABELS):
       t = np.zeros(len(x))
       for j in range(self.NLABELS):
-        if i != j:
-          wiminuswjx = np.dot(x, W[i] - W[j])
-          wiminuswj_norm = np.dot(x, W[i] - W[j])
-          s = logistic(scale=self.sigma).cdf((p[i] - p[j])*wiminuswjx/wiminuswj_norm/(self.NLABELS - 1))
-          t += s*(1 - s)*(x/wiminuswj_norm - (W[i] - W[j])*wiminuswjx/wiminuswj_norm**3)/self.sigma*(p[i] - p[j])/(self.NLABELS - 1)
+        if (p[i] - p[j])*np.dot(x, W[i] - W[j]) > 0:
+          t += (p[i] - p[j])*x
       G[i] = t
     return G
     
   def __psgd(self, X, Y):
-    W_ = np.zeros((self.NLABELS, len(X[0])))
-    for i in range(self.NLABELS): W_[i, i] = 1  # Initializing W
+    W_ = np.random.rand(self.NLABELS, len(X[0])) # np.zeros((self.NLABELS, len(X[0])))
+    
+    # for i in range(self.NLABELS): W_[i, i] = 1  # Initializing W
 
     for i in range(len(X)):
       W_ = W_ - self.beta*self.__grad_g(X[i], Y[i], W_)
-      for j in range(self.NLABELS): W_[j] /= np.linalg.norm(W_[j])
+      # for j in range(self.NLABELS): W_[j] /= np.linalg.norm(W_[j])
     return W_
 
   def fit(self, X, P):
