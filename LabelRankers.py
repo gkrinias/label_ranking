@@ -6,6 +6,8 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from scipy.stats import kendalltau
 
+from sklearn.utils.validation import check_is_fitted
+
 
 def KTdistance(p, q):
   """
@@ -21,11 +23,11 @@ def KTdistance(p, q):
 def score(P, P_pred):
   return np.mean([1 - KTdistance(p, p_pred) for p, p_pred in zip(P, P_pred)])
 
-def kendall_rank_corr_coef(p_true, p_pred):
+def mean_kendall_rank_corr(P_true, P_pred):
   """
-  Kendall rank correlation coefficient
+  Mean Kendall rank correlation coefficient
   """
-  return kendalltau(p_true, p_pred)[0]
+  return np.mean([kendalltau(p_true, p_pred)[0] for p_true, p_pred in zip(P_true, P_pred)])
 
 
 
@@ -73,6 +75,7 @@ class LabelwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
     return self
 
   def predict(self, X):
+    # check_is_fitted(self)
     Y = np.array([regressor.predict(X) for regressor in self.regressors]).T
     return np.argsort(np.argsort(Y, axis=1), axis=1)
 
@@ -91,6 +94,7 @@ class LabelwiseRandomForestLR(BaseEstimator, ClassifierMixin):
     return self
 
   def predict(self, X):
+    # check_is_fitted(self)
     Y = np.array([regressor.predict(X) for regressor in self.regressors]).T
     return np.argsort(np.argsort(Y, axis=1), axis=1)
 
@@ -118,7 +122,7 @@ class PairwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
     self.clfs = [
       DecisionTreeClassifier().fit(
         X,
-        np.array([self.__sign(p[j] - p[i]) for p in P])
+        self.__sign(P[:, j] - P[:, i])
       )
       for (i, j) in combinations(range(self.NLABELS), 2)
     ]
@@ -152,7 +156,7 @@ class PairwiseRandomForestLR(BaseEstimator, ClassifierMixin):
     self.clfs = [
       RandomForestClassifier().fit(
         X,
-        np.array([self.__sign(p[j] - p[i]) for p in P])
+        self.__sign(P[:, j] - P[:, i])
       )
       for (i, j) in combinations(range(self.NLABELS), 2)
     ]
@@ -210,7 +214,7 @@ class PairwiseHalfspaceLR(BaseEstimator, ClassifierMixin):
   def fit(self, X, P):
     self.NLABELS = len(P[0])
     self.V = np.array([
-      self.__halfspace(X, np.array([self.__sign(p[j] - p[i]) for p in P]))
+      self.__halfspace(X, self.__sign(P[:, j] - P[:, i]))
       for (i, j) in combinations(range(self.NLABELS), 2)
     ])
     return self

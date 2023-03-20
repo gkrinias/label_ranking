@@ -47,6 +47,16 @@ def flip_pair(eta):
   return np.random.random() < eta
 
 
+def flip_ranking(ranking, eta):
+  """
+  Flips the given ranking with probability eta.
+  This corresponds to adding RCN to each pair.
+  """
+  assert 0 <= eta < .5
+  return np.flip(ranking) if np.random.random() < eta else ranking
+
+
+
 def addNoise(ranking, eta):
   """
   Adds noise to a given ranking.
