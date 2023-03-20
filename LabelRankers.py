@@ -63,11 +63,13 @@ def kwickSort(V, A):
 
 class LabelwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
   def __init__(self):
+    self.NFEATURES = None
     self.NLABELS = None
     self.regressors = None
   
   def fit(self, X, P):
-    self.NLABELS = len(P[0])
+    self.NFEATURES = X.shape[1]
+    self.NLABELS = P.shape[1]
     self.regressors = [
       DecisionTreeRegressor().fit(X, P[:, label])
       for label in range(self.NLABELS)
@@ -82,11 +84,13 @@ class LabelwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
 
 class LabelwiseRandomForestLR(BaseEstimator, ClassifierMixin):
   def __init__(self):
+    self.NFEATURES = None
     self.NLABELS = None
     self.regressors = None
   
   def fit(self, X, P):
-    self.NLABELS = len(P[0])
+    self.NFEATURES = X.shape[1]
+    self.NLABELS = P.shape[1]
     self.regressors = [
       RandomForestRegressor().fit(X, P[:, label])
       for label in range(self.NLABELS)
@@ -101,6 +105,7 @@ class LabelwiseRandomForestLR(BaseEstimator, ClassifierMixin):
 
 class PairwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
   def __init__(self):
+    self.NFEATURES = None
     self.NLABELS = None
     self.clfs = None
 
@@ -118,7 +123,8 @@ class PairwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
     return np.argsort(flatten(kwickSort(set(range(self.NLABELS)), A)))
 
   def fit(self, X, P):
-    self.NLABELS = len(P[0])
+    self.NFEATURES = X.shape[1]
+    self.NLABELS = P.shape[1]
     self.clfs = [
       DecisionTreeClassifier().fit(
         X,
@@ -135,6 +141,7 @@ class PairwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
 
 class PairwiseRandomForestLR(BaseEstimator, ClassifierMixin):
   def __init__(self):
+    self.NFEATURES = None
     self.NLABELS = None
     self.clfs = None
 
@@ -152,7 +159,8 @@ class PairwiseRandomForestLR(BaseEstimator, ClassifierMixin):
     return np.argsort(flatten(kwickSort(set(range(self.NLABELS)), A)))
 
   def fit(self, X, P):
-    self.NLABELS = len(P[0])
+    self.NFEATURES = X.shape[1]
+    self.NLABELS = P.shape[1]
     self.clfs = [
       RandomForestClassifier().fit(
         X,
@@ -169,6 +177,7 @@ class PairwiseRandomForestLR(BaseEstimator, ClassifierMixin):
 
 class PairwiseHalfspaceLR(BaseEstimator, ClassifierMixin):
   def __init__(self, beta, sigma, split):
+    self.NFEATURES = None
     self.NLABELS = None
     self.beta = beta
     self.sigma = sigma
@@ -212,7 +221,8 @@ class PairwiseHalfspaceLR(BaseEstimator, ClassifierMixin):
     return W[self.__best_halfspace_idx(W, X[T:], Y[T:])]
 
   def fit(self, X, P):
-    self.NLABELS = len(P[0])
+    self.NFEATURES = X.shape[1]
+    self.NLABELS = P.shape[1]
     self.V = np.array([
       self.__halfspace(X, self.__sign(P[:, j] - P[:, i]))
       for (i, j) in combinations(range(self.NLABELS), 2)
