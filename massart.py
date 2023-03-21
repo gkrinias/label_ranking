@@ -56,6 +56,29 @@ def flip_ranking(ranking, eta):
   return np.flip(ranking) if np.random.random() < eta else ranking
 
 
+def massart_noisy_ranking(ranking, eta, x, W):
+  """
+  Let l(1), ..., l(k) be the original true ranking corresponding to x.
+  We swap labels (l(i), l(i+1)) with probability eta - |(w(l(i)) - w(l(i+1)))x| <= eta
+  For i = 0, 2, 4, ...
+  """
+  assert 0 <= eta < .5
+  for i in range(0, len(ranking) if len(ranking) % 2 == 0 else len(ranking) - 1, 2):
+    if np.random.random() < eta - 0.1*np.abs(np.dot(W[ranking[i]] - W[ranking[i + 1]], x)):
+      ranking[i], ranking[i + 1] = ranking[i + 1], ranking[i]
+  return ranking
+
+
+def flip_ranking_massart(ranking, eta, x):
+  """
+  Flips the given ranking with probability eta.
+  This corresponds to adding RCN to each pair.
+  """
+  assert 0 <= eta < .5
+  return np.flip(ranking) if np.random.random() < eta*(1 - .5*np.abs(x[0])) else ranking
+
+
+
 
 def addNoise(ranking, eta):
   """
