@@ -20,7 +20,7 @@ def flatten(S):
   return S[:1] + flatten(S[1:])
 
 
-def kwickSort(V, A):
+def kwikSort(V, A):
   """
   Approximation algorithm for constructing a permutation
   from tournament graph (pairwise orderings), so that the
@@ -36,7 +36,7 @@ def kwickSort(V, A):
   Al = set((i, j) for (i, j) in A if i in Vl and j in Vl)
   Ar = set((i, j) for (i, j) in A if i in Vr and j in Vr)
 
-  return [kwickSort(Vl, Al), i, kwickSort(Vr, Ar)]
+  return [kwikSort(Vl, Al), i, kwikSort(Vr, Ar)]
 
 
 def flip_pair(eta):
@@ -87,7 +87,7 @@ def addNoise(ranking, eta):
   """
   pair_orderings = set((j, i) if flip_pair(eta) else (i, j) for (i, j) in combinations(ranking, 2))
   # We need to resolve conflicts, i.e. remove cycles in the corresponding tournament graph
-  return np.array(flatten(kwickSort(set(range(len(ranking))), pair_orderings)))
+  return np.array(flatten(kwikSort(set(range(len(ranking))), pair_orderings)))
 
 def addNoise2(ranking, eta):
   """

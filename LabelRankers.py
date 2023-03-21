@@ -6,22 +6,6 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from scipy.stats import kendalltau
 
-from sklearn.utils.validation import check_is_fitted
-
-
-def KTdistance(p, q):
-  """
-  Returns normalized KT distance between two position arrays.
-  """
-  assert len(p) == len(q)
-  misordered_pairs = 0
-  for (i, j) in combinations(range(len(p)), 2):
-    if (p[i] - p[j])*(q[i] - q[j]) < 0: misordered_pairs += 1
-  return 2*misordered_pairs/len(p)/(len(p) - 1)
-
-
-def score(P, P_pred):
-  return np.mean([1 - KTdistance(p, p_pred) for p, p_pred in zip(P, P_pred)])
 
 def mean_kendall_rank_corr(P_true, P_pred):
   """
@@ -29,6 +13,12 @@ def mean_kendall_rank_corr(P_true, P_pred):
   """
   return np.mean([kendalltau(p_true, p_pred)[0] for p_true, p_pred in zip(P_true, P_pred)])
 
+
+def mean_kendall_rank_dist(P_true, P_pred):
+  """
+  Mean normalized Kendall rank distance
+  """
+  return (1 - mean_kendall_rank_corr(P_true, P_pred))/2
 
 
 def flatten(S):
@@ -42,7 +32,7 @@ def flatten(S):
   return S[:1] + flatten(S[1:])
 
 
-def kwickSort(V, A):
+def kwikSort(V, A):
   """
   Approximation algorithm for constructing a permutation
   from tournament graph (pairwise orderings), so that the
@@ -58,7 +48,7 @@ def kwickSort(V, A):
   Al = set((i, j) for (i, j) in A if i in Vl and j in Vl)
   Ar = set((i, j) for (i, j) in A if i in Vr and j in Vr)
 
-  return [kwickSort(Vl, Al), i, kwickSort(Vr, Ar)]
+  return [kwikSort(Vl, Al), i, kwikSort(Vr, Ar)]
 
 
 class LabelwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
@@ -120,7 +110,7 @@ class PairwiseDecisionTreeLR(BaseEstimator, ClassifierMixin):
       (i, j) if y[k] > 0 else (j, i) 
       for k, (i, j) in enumerate(combinations(range(self.NLABELS), 2))
     )
-    return np.argsort(flatten(kwickSort(set(range(self.NLABELS)), A)))
+    return np.argsort(flatten(kwikSort(set(range(self.NLABELS)), A)))
 
   def fit(self, X, P):
     self.NFEATURES = X.shape[1]
@@ -156,7 +146,7 @@ class PairwiseRandomForestLR(BaseEstimator, ClassifierMixin):
       (i, j) if y[k] > 0 else (j, i) 
       for k, (i, j) in enumerate(combinations(range(self.NLABELS), 2))
     )
-    return np.argsort(flatten(kwickSort(set(range(self.NLABELS)), A)))
+    return np.argsort(flatten(kwikSort(set(range(self.NLABELS)), A)))
 
   def fit(self, X, P):
     self.NFEATURES = X.shape[1]
@@ -195,7 +185,7 @@ class PairwiseHalfspaceLR(BaseEstimator, ClassifierMixin):
       (i, j) if y[k] > 0 else (j, i) 
       for k, (i, j) in enumerate(combinations(range(self.NLABELS), 2))
     )
-    return np.argsort(flatten(kwickSort(set(range(self.NLABELS)), A)))
+    return np.argsort(flatten(kwikSort(set(range(self.NLABELS)), A)))
 
   def __grad_g(self, x, y, w):
     ywx = y*np.dot(x, w)
