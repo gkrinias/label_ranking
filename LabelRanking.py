@@ -5,7 +5,7 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from HomogeneousHalfspaceClassifier import HomogeneousHalfspaceClassifier
-from Graph import getRankingFromArcs
+from Graph import tournament2ranking
 
 
 def KTdistance(sigma, pi):
@@ -63,26 +63,41 @@ class LabelwiseLabelRanking(BaseEstimator, ClassifierMixin):
 
 
 class PairwiseLabelRanking(BaseEstimator, ClassifierMixin):
-  def __init__(self, classifier_name, params):
+  def __init__(self, classifier_name, params, aggregation):
     self.NFEATURES = None
     self.NLABELS = None
     self.clfs = None
     self.classifier_name = classifier_name
     self.params = params
+    self.aggregation = aggregation
 
   def __sign(self, x): return 2*(x >= 0) - 1
 
-  def __create_positions(self, y):
+  def __votingAggregation(self, y):
     """
     Takes as argument an array indicating the dominant label for each pair
-    of labels and returns the positions of the underlying ranking. 
+    of labels and returns the positions of the underlying ranking based on
+    the number of wins of each label in all pairwise duels 
+    """
+    s = np.zeros(self.NLABELS)
+    for k, (i, j) in enumerate(combinations(range(self.NLABELS), 2)):
+      if y[k] == 1: s[i] += 1
+      else: s[j] += 1
+
+    return np.argsort(np.argsort(s)[::-1])
+
+  def __tournamentAggregation(self, y):
+    """
+    Takes as argument an array indicating the dominant label for each pair
+    of labels and returns the positions of the underlying ranking based on
+    the topological ordering of the underlying tournament after breaking its cycles
     """
     A = set(
       (i, j) if y[k] > 0 else (j, i) 
       for k, (i, j) in enumerate(combinations(range(self.NLABELS), 2))
     )
 
-    return np.argsort(getRankingFromArcs(self.NLABELS, A))
+    return np.argsort(tournament2ranking(self.NLABELS, A))
 
   def fit(self, X, P):
     self.NFEATURES = X.shape[1]
@@ -119,4 +134,7 @@ class PairwiseLabelRanking(BaseEstimator, ClassifierMixin):
 
   def predict(self, X):
     Y = np.array([clf.predict(X) for clf in self.clfs]).T
-    return np.array([self.__create_positions(y) for y in Y])
+    if self.aggregation == 'tournament':
+      return np.array([self.__tournamentAggregation(y) for y in Y])
+    if self.aggregation == 'voting':
+      return np.array([self.__votingAggregation(y) for y in Y])

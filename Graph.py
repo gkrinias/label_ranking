@@ -98,10 +98,8 @@ def kwikSort(V, A):
   return [kwikSort(Vl, Al), i, kwikSort(Vr, Ar)]
 
 
-def getRankingFromArcs(n_vertices, arcs):
-  g = Graph(n_vertices)
-
-  for arc in arcs: g.addEdge(arc[0], arc[1])
-  
-  if not g.isCyclic(): return g.topologicalSort()
-  else: return flatten(kwikSort(set(range(n_vertices)), arcs))
+def tournament2ranking(n_vertices, arcs):
+  # g = Graph(n_vertices)
+  # for arc in arcs: g.addEdge(arc[0], arc[1])
+  # if not g.isCyclic(): return g.topologicalSort()
+  return flatten(kwikSort(set(range(n_vertices)), arcs))

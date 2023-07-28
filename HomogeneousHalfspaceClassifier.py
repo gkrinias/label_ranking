@@ -8,12 +8,11 @@ class HomogeneousHalfspaceClassifier(BaseEstimator, ClassifierMixin):
   Homogeneous Halfspace learner that satisfies the PAC guarantee
   for distributions with Massart noise and bounded marginals
   """
-  def __init__(self, beta, sigma, split):
+  def __init__(self, beta, sigma):
     self.NFEATURES = None
     self.w = None
     self.beta = beta
     self.sigma = sigma
-    self.split = split
 
   def __sign(self, x): return 2*(x >= 0) - 1
 
@@ -35,10 +34,10 @@ class HomogeneousHalfspaceClassifier(BaseEstimator, ClassifierMixin):
     return np.argmin([np.sum(self.__sign(np.sum(w*X, axis=1)) != Y) for w in W])
 
   def __halfspace(self, X, Y):
-    T = int(len(X)*self.split)
-    W = self.__psgd(X[:T], Y[:T])
+    W = self.__psgd(X, Y)
     W = np.concatenate((W, -W))
-    return W[self.__best_halfspace_idx(W, X[T:], Y[T:])]
+    evaluation_samples = int(0.3*len(X))
+    return W[self.__best_halfspace_idx(W, X[:evaluation_samples], Y[:evaluation_samples])]
 
   def fit(self, X, Y):
     self.NFEATURES = X.shape[1]
