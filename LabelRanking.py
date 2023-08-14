@@ -26,11 +26,14 @@ def mean_KTcorrelation(P_true, P_pred):
   return 1 - 4*mean_KTdistance(P_true, P_pred)/P_true.shape[1]/(P_true.shape[1] - 1)
 
 
-def LinearSortingFunction(X, W):
+def LinearSortingFunction(W, X, N=None):
   """
-  Linear Sorting Function
+  X: nxd data matrix
+  W: kxd matrix
+  N: nxk noise matrix
   """
-  return np.array([np.argsort(np.matmul(W, x))[::-1] for x in X])
+  if N is None: N = np.zeros((X.shape[0], W.shape[0]))
+  return np.flip(np.argsort(np.matmul(X, W.T) + N), axis=1)
 
 
 class LabelwiseLabelRanking(BaseEstimator, ClassifierMixin):
