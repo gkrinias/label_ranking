@@ -1,3 +1,5 @@
-- **LabelRankers.py** contains implementations of ranking classifiers using decision trees, random forests and reduction to halfspaces.
+- **LabelRanking.py** contains implementations of ranking classifiers using decision trees, random forests and linear functions.
 
-- **massart.py** contains auxiliary functions for adding noise to labels and permutations.
+- **Graph.py** contains the implementation of the randomized 3-approximation tournament MFAS algorithm KWIKSORT
+
+- **HomogeneousHalfspaceClassifier.py** contains the implementation of a homogeneous halfspace learner with Massart noise.
